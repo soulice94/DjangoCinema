@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.core import serializers
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, get_list_or_404
 from django.forms.models import model_to_dict
 from cinema.models import Genre, Movie, Artist
 from first_example.helpers.model_helper import ModelHelper
@@ -54,16 +54,18 @@ def movie(request, movie_id=0):
     if ModelHelper.need_json_body(request.method):
         received_data = json.loads(request.body)
     if request.method == constants.GET_METHOD:
-        response = ModelHelper.retrieve_all(Movie)
+        response = ModelHelper.retrieve_all_movies(Movie)
     elif request.method == constants.POST_METHOD:
         genre = get_object_or_404(Genre, pk=received_data["genre"])
+        actors_list = get_list_or_404(Artist, pk__in=received_data["actors"])
         movie = Movie.objects.create(
             name=received_data["name"],
             genre=genre
         )
+        movie.actors.set(actors_list)
         response = {
             'success': True,
-            'created': model_to_dict(movie)
+            'created': ModelHelper.movie_serializer(movie)
         }
     elif request.method == constants.PUT_METHOD:
         movie = get_object_or_404(Movie, pk=movie_id)
