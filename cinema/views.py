@@ -1,7 +1,7 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, get_list_or_404
 from django.http import HttpResponse, JsonResponse
 from django.core import serializers
-from django.shortcuts import get_object_or_404, get_list_or_404
+from django.db.models import Q
 from django.forms.models import model_to_dict
 from cinema.models import Genre, Movie, Artist
 from first_example.helpers.model_helper import ModelHelper
@@ -54,7 +54,7 @@ def movie(request, movie_id=0):
     if ModelHelper.need_json_body(request.method):
         received_data = json.loads(request.body)
     if request.method == constants.GET_METHOD:
-        response = ModelHelper.retrieve_all_movies(Movie)
+        response = ModelHelper.retrieve_movie_list(Movie.objects.all())
     elif request.method == constants.POST_METHOD:
         genre = get_object_or_404(Genre, pk=received_data["genre"])
         actors_list = get_list_or_404(Artist, pk__in=received_data["actors"])
@@ -75,11 +75,11 @@ def movie(request, movie_id=0):
         movie.save()
         response = {
             'success': True,
-            'updated': model_to_dict(movie)
+            'updated': ModelHelper.movie_serializer(movie)
         }
     elif request.method == constants.DELETE_METHOD:
         movie = get_object_or_404(Movie, pk=movie_id)
-        movie_data = model_to_dict(movie)
+        movie_data = ModelHelper.movie_serializer(movie)
         movie.delete()
         response = {
             'success': True,
@@ -114,4 +114,14 @@ def genre(request, genre_id=0):
             'success': True,
             'deleted': genre_data
         }
+    return JsonResponse(response, status=200)
+
+def movieSearch(request, artist_name=None, movie_name=None):
+    query = Q()
+    if 'artist_name' in request.GET:
+        query.add(Q(actors__name=request.GET["artist_name"]), Q.OR)
+    if 'movie_name' in request.GET:
+        query.add(Q(name=request.GET["movie_name"]), Q.OR)
+    result = Movie.objects.filter(query)
+    response = ModelHelper.retrieve_movie_list(result)
     return JsonResponse(response, status=200)

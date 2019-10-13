@@ -24,15 +24,15 @@ class ModelHelper:
     def movie_serializer(movie):
         actors=ModelHelper.from_query_to_list(movie.actors.all().values())
         return {
+            'id': movie.id,
             'name': movie.name,
             'genre': model_to_dict(movie.genre),
             'actors': actors
         }
     
     @staticmethod
-    def retrieve_all_movies(Model):
-        movies = Model.objects.all()
+    def retrieve_movie_list(movie_list):
         records = []
-        for movie in movies:
+        for movie in movie_list:
             records.append(ModelHelper.movie_serializer(movie))
         return { 'records': records }
