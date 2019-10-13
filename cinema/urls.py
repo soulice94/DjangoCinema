@@ -4,7 +4,8 @@ from . import views
 
 urlpatterns = [
     path('', views.index, name='index'),
-    path('/api/movies/', views.movie, name='movies'),
+    path('api/movies/', views.movie, name='movies'),
+    path('api/movies/<int:movie_id>', views.movie, name='movies'),
     path('api/artists/', views.artist, name='artists'),
     path('api/artists/<int:artist_id>', views.artist, name='artists'),
     path('api/genres/', views.genre, name='genres'),

@@ -16,10 +16,11 @@ def index(request):
     return JsonResponse(a, status=200)
 
 def artist(request, artist_id=0):
-    if request.method == constants.GET_METHOD:
-        response = ModelHelper.retrieveAll(Artist)
-    elif request.method == constants.POST_METHOD:
+    if ModelHelper.need_json_body(request.method):
         received_data = json.loads(request.body)
+    if request.method == constants.GET_METHOD:
+        response = ModelHelper.retrieve_all(Artist)
+    elif request.method == constants.POST_METHOD:
         artist = Artist.objects.create(
             name=received_data["name"],
             last_name=received_data["last_name"]
@@ -41,6 +42,7 @@ def artist(request, artist_id=0):
     elif request.method == constants.DELETE_METHOD:
         artist = get_object_or_404(Artist, pk=artist_id)
         artist_data = model_to_dict(artist)
+        artist.delete()
         response = {
             'success': True,
             'deleted': artist_data
@@ -48,25 +50,53 @@ def artist(request, artist_id=0):
     return JsonResponse(response, status=200)
 
 
-def movie(request):
+def movie(request, movie_id=0):
+    if ModelHelper.need_json_body(request.method):
+        received_data = json.loads(request.body)
     if request.method == constants.GET_METHOD:
-        response = ModelHelper.retrieveAll(Movie)
+        response = ModelHelper.retrieve_all(Movie)
     elif request.method == constants.POST_METHOD:
-        pass
+        genre = get_object_or_404(Genre, pk=received_data["genre"])
+        movie = Movie.objects.create(
+            name=received_data["name"],
+            genre=genre
+        )
+        response = {
+            'success': True,
+            'created': model_to_dict(movie)
+        }
+    elif request.method == constants.PUT_METHOD:
+        movie = get_object_or_404(Movie, pk=movie_id)
+        genre = get_object_or_404(Genre, pk=received_data["genre"])
+        movie.name = received_data["name"]
+        movie.genre = genre
+        movie.save()
+        response = {
+            'success': True,
+            'updated': model_to_dict(movie)
+        }
+    elif request.method == constants.DELETE_METHOD:
+        movie = get_object_or_404(Movie, pk=movie_id)
+        movie_data = model_to_dict(movie)
+        movie.delete()
+        response = {
+            'success': True,
+            'deleted': movie_data
+        }
     return JsonResponse(response, status=200)
 
 def genre(request, genre_id=0):
-    if request.method == constants.GET_METHOD:
-        response = ModelHelper.retrieveAll(Genre)
-    elif request.method == constants.POST_METHOD:
+    if ModelHelper.need_json_body(request.method):
         received_data = json.loads(request.body)
+    if request.method == constants.GET_METHOD:
+        response = ModelHelper.retrieve_all(Genre)
+    elif request.method == constants.POST_METHOD:
         genre = Genre.objects.create(name=received_data["name"])
         response = {
             'success': True,
             'created': model_to_dict(genre)
         }
     elif request.method == constants.PUT_METHOD:
-        received_data = json.loads(request.body)
         genre = get_object_or_404(Genre, pk=genre_id)
         genre.name = received_data["name"]
         genre.save()
