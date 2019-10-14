@@ -82,7 +82,12 @@ def movie(request, movie_id=0):
             'success': True,
             'deleted': movie_data
         }
-    return JsonResponse(response, status=200)
+    response = JsonResponse(response, status=200)
+    response["Access-Control-Allow-Origin"] = "*"
+    response["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+    response["Access-Control-Max-Age"] = "1000"
+    response["Access-Control-Allow-Headers"] = "X-Requested-With, Content-Type"
+    return response
 
 def genre(request, genre_id=0):
     if ModelHelper.need_json_body(request.method):
