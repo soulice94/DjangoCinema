@@ -10,10 +10,7 @@ import json
 
 
 def index(request):
-    a = {
-        'message': 'hola'
-    }
-    return JsonResponse(a, status=200)
+    return render(request, 'cinema/index.html')
 
 def artist(request, artist_id=0):
     if ModelHelper.need_json_body(request.method):
